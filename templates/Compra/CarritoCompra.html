@@ -1,0 +1,198 @@
+{% extends "index.html" %}
+{% load static %}
+{% block content %}
+
+
+
+<script type="text/javascript">
+
+    let arreglo = new Array();
+    cargarLocalStorage ();
+
+    window.addEventListener("load",()=>{
+        //cargarLocalStorage();
+        cargarTabla();
+
+        //console.log(arreglo);
+
+        var agregarCantidadProducto = document.getElementsByClassName("fa-solid fa-circle-plus");
+        var quitarCantidadProducto = document.getElementsByClassName("fa-solid fa-circle-minus");
+        var quitarProducto = document.getElementsByClassName("btn btn-danger");
+
+        console.log(quitarProducto);
+
+        for (let i = 0; i < agregarCantidadProducto.length; i++) {
+            agregarCantidadProducto[i].addEventListener("click",() => {
+                agregarProductoCantidad(arreglo[i].cantidad,arreglo[i].precio,i);
+            });
+        }
+        
+        for (let j = 0; j < quitarCantidadProducto.length; j++) {
+            quitarCantidadProducto[j].addEventListener("click",() => {
+                quitarProductoCantidad(arreglo[j].precio,j);
+            });
+        }
+
+        for (let k = 0; k < quitarProducto.length; k++) {
+            quitarProducto[k].addEventListener("click",() => {
+                quitarProductoPosicion(k);
+            });
+        }
+
+        function agregarProductoCantidad(cantidadTotalProducto,precioProducto,posicion){
+            let idCantidad = "cantidadProducto"+posicion;
+            let idPagar = "totalPagar"+posicion;
+            var cantidad = document.getElementById(idCantidad).innerHTML;
+            if(cantidad > 0){
+                cantidad++;
+                if(cantidad > cantidadTotalProducto){
+                    alert('No se puede agregar mas productos');
+                }else{
+                    document.getElementById(idCantidad).innerHTML = cantidad;
+                    document.getElementById(idPagar).innerHTML = "$"+(cantidad * precioProducto);
+
+                    arreglo[posicion].cantidadAdquirida = cantidad;
+                    arreglo[posicion].totalPagar = (cantidad * precioProducto);
+
+                    guardarLocalStorage();
+                    totalPagar();
+                }
+            }
+        } 
+    
+        function quitarProductoCantidad(precioProducto,posicion){
+            let idCantidad = "cantidadProducto"+posicion;
+            let idPagar = "totalPagar"+posicion;
+            var cantidad = document.getElementById(idCantidad).innerHTML;
+            if(cantidad > 0){
+                cantidad--;
+                if(cantidad == 0){
+                    alert('No se puede eliminar mas productos');
+                }else{
+                    arreglo[posicion].cantidadAdquirida = cantidad;
+                    arreglo[posicion].totalPagar = (cantidad * precioProducto);
+
+
+                    document.getElementById(idCantidad).innerHTML = cantidad;
+                    document.getElementById(idPagar).innerHTML = "$"+(cantidad * precioProducto);
+                    guardarLocalStorage();
+                    totalPagar();
+                }
+            }else{
+                if(cantidad == 0){
+                    alert('No se puede eliminar mas productos');
+                    arreglo[posicion].cantidadAdquirida = cantidad;
+                    arreglo[posicion].totalPagar = (cantidad * precioProducto);
+
+                    document.getElementById(idCantidad).innerHTML = cantidad;
+                    document.getElementById(idPagar).innerHTML = "$"+(cantidad * precioProducto);
+                    guardarLocalStorage();
+                    totalPagar();
+                }
+            }
+        } 
+
+        function quitarProductoPosicion(posicion){
+            arreglo.splice(posicion, 1);
+            guardarLocalStorage();
+            cargarLocalStorage();
+            console.log(arreglo);
+            document.getElementById("navbar-count").innerHTML =  arreglo.length;
+            totalPagar();
+            cargarTabla();
+        }
+
+
+        function guardarLocalStorage () {
+            localStorage.setItem('CarritoCompra', JSON.stringify(arreglo));
+        }
+
+    });
+
+    function cargarLocalStorage () {
+        if (localStorage.getItem('CarritoCompra') !== null) {
+            arreglo = JSON.parse(localStorage.getItem('CarritoCompra'));
+        }
+    }
+
+    function cargarTabla() {
+        var tabla = `
+            <tr>
+                <th>Imagen</th>
+                <th>Nombre</th>
+                <th>Precio</th>
+                <th>Cantidad</th>
+                <th>Marca</th> 
+                <th>Total</th> 
+                <th>Acción</th> 
+            </tr>
+        `;
+         
+        var valorTotal = 0;
+        for (let i = 0; i < arreglo.length; i++) {
+            tabla += "<tr>";
+            tabla += "<td>"+'<img src='+arreglo[i].imagenProducto+'/>'+"</td>";
+            tabla += "<td>"+arreglo[i].nombre+"</td>";
+            tabla += "<td>$"+arreglo[i].precio+"</td>";
+            tabla += "<td>"+"<p id ='cantidadProducto"+i+"'>"+arreglo[i].cantidadAdquirida+"</p>"+"<a href='#'><i class='fa-solid fa-circle-plus'></i></a><a href='#'><i class='fa-solid fa-circle-minus'></i></a></td>";
+            tabla += "<td>"+arreglo[i].marca+"</td>";
+            tabla += "<td>"+"<p id = 'totalPagar"+i+"'> $"+(arreglo[i].totalPagar)+"</p>"+"</td>";
+            tabla += "<td><a  href='#' class='btn btn-danger'> Quitar</a></td>";
+            tabla +='</tr>';
+
+            valorTotal = valorTotal + arreglo[i].totalPagar;
+            
+        }
+
+        document.getElementById("cantidadProductos").innerHTML = arreglo.length;
+
+        totalPagar();
+
+        document.getElementById("tablaProductos").innerHTML = tabla;
+    }
+
+
+    function totalPagar(){
+        var valorTotal = 0;
+        for (let i = 0; i < arreglo.length; i++) {
+            valorTotal = valorTotal + arreglo[i].totalPagar;
+        }
+        document.getElementById("totalProductosPagar").innerHTML = "$"+valorTotal;
+    }
+</script>
+
+
+
+<div class="container">
+
+    <br>
+    <br>
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="box-element border border-secondary">
+                <br>
+                <a class="btn btn-warning btn-lg" href="{% url 'productos' %}">Seguir Comprando</a>
+                <br>
+                
+                <table class="table">
+                    <tr>
+                        <th><h5>Items : <strong id = "cantidadProductos">3</strong></h5></th>
+                        <th><h5>Total : <strong id = "totalProductosPagar">$43</strong></h5></th>
+                        <th>
+                            <a class="btn btn-success" href="{% url 'compra' %}">Pagar la Compra</a>
+                        </th>
+                    </tr>
+                </table>
+            </div>
+            
+            <br>
+            <br>
+            <br>
+
+            <table class = "table table-striped" id = "tablaProductos">
+
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock content %}

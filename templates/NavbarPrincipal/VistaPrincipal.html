@@ -1,0 +1,47 @@
+{% extends "index.html" %}
+{% load crispy_forms_tags%}
+{% block content %} 
+<div class="hero">
+	<div class="row">
+	  <div class="left-sec">
+		<div class="content">
+		  <h2>Online</h2>
+		  <h1>BAG'S</h1>
+		  <h3>STORE</h3>
+		  <a href="#" class="btn">Shop Now</a>
+		</div>
+	  </div>
+	  <div class="right-sec">
+		<div class="bags-brand">
+		  <div>
+			<imgsrc="https://img.freepik.com/vector-premium/fondo-futurista-tecnologia-isometrica_52683-74303.jpg?w=2000"/>
+		  </div>
+		  <div>
+			<img src="https://es.digitaltrends.com/wp-content/uploads/2018/05/4k-ultra-hd.jpg?fit=720%2C720&p=1"/>
+		  </div>
+		  <div>
+			<img src="https://img.freepik.com/vector-premium/fondo-futurista-tecnologia-isometrica_52683-74303.jpg?w=2000"/>
+		  </div>
+		  <div>
+			<img src="https://img.freepik.com/vector-premium/fondo-futurista-tecnologia-isometrica_52683-74303.jpg?w=2000"/>
+		  </div>
+		</div>
+	  </div>
+	</div>
+  </div>
+
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.js"></script>
+  <script>
+
+    $('.bags-brand').slick({
+      dots: true,
+      speed: 500,
+      autplay:true,
+      fade:true,
+      cassEase:'linear'
+    });
+  </script>
+
+{% endblock %}
+

@@ -1,0 +1,176 @@
+{% extends "index.html" %}
+{% load static %}
+{% block content %}
+
+<script type="text/javascript">
+   
+</script>
+
+<div class="container">
+    <br>
+    <br>
+    <!-- Set up a container element for the button -->
+
+    <div class="container">
+        <div class="row">
+            <div class="col-sm border border-secondary">
+                <br>
+                <input type="text" class="form-control" id="txtCorreoCompra" placeholder="Ingrese el Correo">
+                <br>
+                <button type="button" class="btn btn-success" onclick ="enviarCorreo(document.getElementById('txtCorreoCompra').value)"  id ="btnEnviar" >Enviar Informacion</button>
+                <br>
+                <br>
+
+                <div id="paypal-button-container"></div>
+            </div>
+            <div class="col-sm border border-secondary">
+                <center><h1 class = "text-dark">Compra Realizada</h1></center>
+                <table class = "table table-striped" id = "tablaProductos">
+
+                </table>
+                <p id ="items"><p>
+                <p id ="totalPagar"><p>
+            </div>
+        </div>
+    </div>
+
+       <!-- Include the PayPal JavaScript SDK -->
+       <script src="https://www.paypal.com/sdk/js?client-id=AfsVq2IenyBeektaOdD6RXxObEMkkdQIQmvIyzMDr8kvupFwvYsSuzubrRxAWExXfGan81NmZmd3SRUI&currency=USD"></script>
+       <script src= "https://smtpjs.com/v3/smtp.js">
+
+    </script>
+       
+
+       <script>
+            var arreglo = new Array();
+            window.addEventListener("load",()=>{
+                cargarLocalStorage();
+                cargarTabla();
+
+                function cargarLocalStorage () {
+                    if (localStorage.getItem('CarritoCompra') !== null) {
+                        arreglo = JSON.parse(localStorage.getItem('CarritoCompra'));
+                    }
+                }
+            
+                function cargarTabla() {
+                    var tabla = ``;
+                    var valorTotal = 0;
+                    for (let i = 0; i < arreglo.length; i++) {
+                        tabla += "<tr>";
+                        tabla += "<td>"+'<img src='+arreglo[i].imagenProducto+' width="75px" heigth="75px" />'+"</td>";
+                        tabla += "<td>"+arreglo[i].nombre+"</td>";
+                        tabla += "<td>"+arreglo[i].marca+"</td>";
+                        tabla += "<td>"+arreglo[i].cantidad+"</td>";
+                        tabla += "<td>"+"<p id = 'totalPagar"+i+"'> $"+(arreglo[i].totalPagar)+"</p>"+"</td>";
+                        tabla +='</tr>';
+                        valorTotal = valorTotal + arreglo[i].totalPagar;
+                    }
+                    document.getElementById("tablaProductos").innerHTML = tabla;
+                    document.getElementById("items").innerHTML = "<b>Items : "+arreglo.length+"</b>";
+                    document.getElementById("totalPagar").innerHTML = "<b>Total a Pagar $ "+ valorTotal+"</b>";
+                }
+
+                
+            });
+            
+
+           function enviarCorreo (correo) {
+                //console.log(correo,"asgasg");
+
+                var arreglo = new Array();
+
+                if (localStorage.getItem('CarritoCompra') !== null) {
+                    arreglo = JSON.parse(localStorage.getItem('CarritoCompra'));
+                }
+
+                var tabla = `
+                    <tr>
+                        <th>Nombre &nbsp; </th>
+                        <th>Precio &nbsp;</th>
+                        <th>Cantidad &nbsp;</th>
+                        <th>Marca &nbsp;</th> 
+                        <th>Total</th> 
+                    </tr><br>
+                `;
+                 
+                var valorTotal = 0;
+                for (let i = 0; i < arreglo.length; i++) {
+                    tabla += "<tr>";
+                    tabla += "<tr>"+arreglo[i].nombre+"</td> &nbsp; &nbsp;";
+                    tabla += "<tr>$"+arreglo[i].precio+"</td> &nbsp; &nbsp;";
+                    tabla += "<tr>"+arreglo[i].cantidadAdquirida+"</td> &nbsp; &nbsp;";
+                    tabla += "<tr>"+arreglo[i].marca+"</td> &nbsp; &nbsp;";
+                    tabla += "<tr> $"+(arreglo[i].totalPagar)+"</td> &nbsp;";
+                    tabla +='</tr><br>';
+                    valorTotal = valorTotal + arreglo[i].totalPagar;
+                }
+
+                tabla += "<br>Tolta a Pagar : $ "+valorTotal  ;
+
+                Email.send({
+                    Host: "smtp.elasticemail.com", 
+                    Username: "josue.sauca@unl.edu.ec",
+                    Password: "D83D06EB6BC6FCA2B1FF6F93A446F795CED3",
+                    To: correo,
+                    From: "josue.sauca@unl.edu.ec",
+                    Subject: `Productos Adquiridos`,
+                    Body: tabla,
+                }).then((success) => {
+                    alert("message sent successfully. Please check the spam folder in your mail.");
+                }).catch((error) => {
+                    alert("error sending message");
+                });
+            }
+
+           // Render the PayPal button into #paypal-button-container
+           paypal.Buttons({
+               // Set up the transaction
+               createOrder: function(data, actions) {
+                    var array = new Array();
+
+                    if (localStorage.getItem('CarritoCompra') !== null) {
+                        array = JSON.parse(localStorage.getItem('CarritoCompra'));
+                    }
+
+                   var valorTotal = 0;
+                   for (let i = 0; i < array.length; i++) {
+                       valorTotal = valorTotal + array[i].totalPagar;
+                    }
+
+                   return actions.order.create({
+                       purchase_units: [{
+                           amount: {
+                               value: valorTotal
+                           }
+                       }]
+                   });
+               },
+               // Finalize the transaction
+               onApprove: function(data, actions) {
+
+                return actions.order.capture().then(function(orderData) {
+                       // Successful capture! For demo purposes:
+                       console.log('Capture result', orderData, JSON.stringify(orderData, null, 2));
+                       var transaction = orderData.purchase_units[0].payments.captures[0];
+                       alert('Transaction '+ transaction.status + ': ' + transaction.id + '\n\nSee console for all available details');
+
+
+                       if (localStorage.getItem('CarritoCompra') !== null) {
+                            localStorage.removeItem('CarritoCompra');
+                        }
+
+                        
+
+                       // Replace the above to show a success message within this page, e.g.
+                       // const element = document.getElementById('paypal-button-container');
+                       // element.innerHTML = '';
+                       // element.innerHTML = '<h3>Thank you for your payment!</h3>';
+                       // Or go to another URL:  actions.redirect('thank_you.html');
+                   });
+               }
+           }).render('#paypal-button-container');
+
+       </script>
+</div>
+{% endblock content %}
