@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-5*(oig3l&983k$-x9z$#^_w^ykqw37yq*o+nc)a_fcqz!ui&r5
 
 # SECURITY WARNING: don't run with debug turned on in production!
 #DEBUG = True
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
@@ -134,6 +134,8 @@ STATIC_TMP = os.path.join(BASE_DIR, "static")
 os.makedirs(STATIC_TMP,exist_ok=True)
 os.makedirs(STATIC_ROOT,exist_ok=True)
 
+
+LOGIN_URL = "/login/"
 
 STATIC_URL = 'static/'
 

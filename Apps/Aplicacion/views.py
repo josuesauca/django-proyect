@@ -1,58 +1,127 @@
 from warnings import catch_warnings
-from django.shortcuts import render,redirect
+from django.shortcuts import render, redirect
 from django.http import HttpRequest
 from django.contrib import messages
 from django.conf import settings
 from django.http import HttpResponse
-from django.contrib.auth import login,authenticate,logout
-from django.contrib.auth.models import User as usuarios
-
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth.models import User
 from django.contrib.auth.decorators import user_passes_test
-from django.core.mail import send_mail
+from django.views.decorators.csrf import csrf_protect
+
 
 import os
 import copy
 # Create your views here.
 
-from .forms import FormularioCliente
 from .forms import FormularioProducto
-from .forms import FormularioProveedor 
+from .forms import FormularioProveedor
+from .forms import FormularioUsuarios
 
 
-from .models import Cliente
 from .models import Producto
-from .models import Cuenta
 from .models import Proveedor
+from .models import CarritoCompras
 
 
 def PaginaInicio(request):
     return render(request, 'index.html', {})
 
+
 def VistaPrincipal(request):
     return render(request, 'VistaPrincipal/VistaPrincipal.html', {})
-
-def CorreoElectronico(request):
-    if(request.method == 'POST'):
-        pass
 
 
 class VistaProductos(HttpRequest):
     def listarProductos(request):
         productos = Producto.objects.all()
-        return render(request, "Producto/Productos.html",{"productos":productos})
-    
-    def informacionProducto(request,id):
+        return render(request, "Producto/Productos.html", {"productos": productos})
+
+    def informacionProducto(request, id):
         producto = Producto.objects.get(pk=id)
-        return render(request, "Producto/InformacionProducto.html", {"producto":producto})
-    
+        return render(request, "Producto/InformacionProducto.html", {"producto": producto})
+
     def cancelarProductos(request):
         return render(request, "Compra/PagarCompra.html", {})
 
+
 def CarritoCompra(request):
-    return render(request, "Compra/CarritoCompra.html",{})
+
+    productos = Producto.objects.all()
+    total_productos = []
+
+    for item in productos:
+        total_productos.append(item.id)
+
+    cantidad_items = CarritoCompras.objects.filter(idUsuario=request.user).filter(productos__in=total_productos).count()
+    ids_productos = CarritoCompras.objects.filter(idUsuario=request.user).filter(productos__in=total_productos).values('productos')
+    lista_ids = []
+
+    for item in ids_productos:
+        lista_ids.append(item['productos'])
+    
+    productos_filtrados = Producto.objects.filter(id__in=lista_ids).values()
+    print(type(productos_filtrados))
+
+    return render(request, "Compra/CarritoCompra.html",{"cantidad_items":cantidad_items,"lista_imagenes":productos_filtrados})
+
+def PagarCompra(request):
+    if(request.method == "GET"):
+        carritoUsuario = CarritoCompras.objects.filter(idUsuario = request.user)
+        
+        pass
+
+    return render(request, "Compra/PagarCompra.html", {})
+
+@csrf_protect
+def AgregarProductoAjax(request):
+    if(request.method =="POST"):
+        try:
+            datos = dict(request.POST)
+            id = datos.get('producto')
+            id = int(id[0])
+
+            productos = Producto.objects.all()
+            total_productos = []
+
+            for item in productos:
+                total_productos.append(item.id)
+
+            usuario = CarritoCompras.objects.filter(idUsuario=request.user)
+
+            lista_productos = []
+
+            if usuario:
+                lista_compras = list(CarritoCompras.objects.filter(idUsuario=request.user).filter(productos__in=total_productos).values('productos'))
+
+                for item in lista_compras:
+                    lista_productos.append(item['productos'])
+
+                lista_productos.append(id)
+                usuario = usuario.first()
+                usuario.productos.set(lista_productos)
+                usuario.save()
+            else:
+                nuevo_carrito = CarritoCompras.objects.create(idUsuario=request.user)
+                nuevo_carrito.productos.set(id) 
+                nuevo_carrito.save()
+
+        except Exception as e:
+            print("exeptcoopm ",e)
+
+    productos = Producto.objects.all()
+    return render(request, "Producto/Productos.html",{"productos":productos})
+
+
+@user_passes_test
+@csrf_protect
+def EliminarProductoAjax(request):
+    if (request.method == 'POST'):
+        pass
+    
 
 def CrearCuenta(request):
+    print (request.GET)
     return render(request, "Login/Signup.html",{})
 
 def check_admin(user):
@@ -64,71 +133,38 @@ def Administrador(request):
 
 def Login(request):
     if(request.method == "POST"):
-        bandera = False
-        User = request.POST['username']
-        Pass = request.POST['password']
-        cuentas = Cuenta.objects.all()
-        clientes = Cliente.objects.all()
-        cuentaDatos = Cuenta()
-        user = authenticate(request,username = User, password = Pass)
-        if user is not None:
-            for cuenta in cuentas:
-                if(user.username == User):
-                    cuentaDatos = copy.copy(cuenta)
-                    bandera = True
+        user = authenticate(
+            request, username=request.POST["username"], password=request.POST["password"])
 
-            clienteCuenta = Cliente()
-
-            for cliente in clientes:
-                if(cliente.nombreUsuario == cuentaDatos.usuario):
-                    clienteCuenta = copy.copy(cliente)
-
-        if bandera :
-            login(request,user)
-            print("Ingresaste")
-            print(user)
-            return render(request, "index.html",{"cuenta" : user,"cliente" : clienteCuenta})
-        else : 
-            messages.success(request,("Hubo un problema al ingresar"))
-            return render(request, "Login/Login.html",{})
+        if user is None:
+            return redirect("login")
+        else:
+            login(request, user)
+            return redirect("index")
     else :
         return render(request, "Login/Login.html",{})
 
 def RegistrarCliente(request):
     if(request.method == "POST"):
-        nombres = request.POST['nombres']
-        apellidos = request.POST['apellidos']
-        nombreUsuario = request.POST['nombreusuario']
-        password = request.POST['password']
-        email = request.POST['email']
-        domicilio = request.POST['domicilio']
-        telefono = request.POST['telefono']
 
-        cliente = Cliente()
-        cuenta = Cuenta()
+        if request.POST["password1"] == request.POST["password2"]:
+            username = request.POST['username']
+            first_name = request.POST['first_name']
+            last_name = request.POST['last_name']
+            email = request.POST['email']
+            password1 = request.POST['password1']
+            user = User.objects.create_user(
+                        username=username, password=password1, email=email,first_name=first_name,last_name=last_name)
 
-        cliente.nombres = nombres
-        cliente.apellidos = apellidos
-        cliente.nombreUsuario = nombreUsuario
-        cliente.password = password
-        cliente.email = email
-        cliente.domicilio = domicilio
-        cliente.telefono = telefono
-
-        cuenta.usuario = nombreUsuario
-        cuenta.password = password
-
-        cuenta.save()
-        cliente.save()
-
-        return render(request, "Login/Login.html",{})
+            user.save()
+            login(request, user)
+        return redirect("index")
     else:
         return render(request, "Login/Signup.html",{})
 
 
 def LogOut(request):
     logout(request)
-    print("saliste")
     return redirect("index")
 
 class GestionarProducto(HttpRequest):
@@ -144,6 +180,7 @@ class GestionarProducto(HttpRequest):
             else:
                 print("Error algo paso")
         return render(request, "Administrador/AdministrarProductos.html",{"form":producto, "productos":productos})
+
     @user_passes_test(check_admin)
     def editar_producto(request,id):
         producto = Producto.objects.get(pk=id)
@@ -168,7 +205,7 @@ class GestionarProveedor(HttpRequest):
     def procesar_proveedor(request):
         proveedor = FormularioProveedor()
         proveedores = Proveedor.objects.all()
-        #print(proveedores," asdas")
+        # print(proveedores," asdas")
         if request.method == 'POST':
             formulario = FormularioProveedor(data=request.POST)
             if formulario.is_valid():
@@ -196,29 +233,54 @@ class GestionarProveedor(HttpRequest):
 @user_passes_test(check_admin)
 class GestionarCliente(HttpRequest):
     @user_passes_test(check_admin)
+
     def procesar_cliente(request):
-        cliente = FormularioCliente()
-        clientes = Cliente.objects.all()
+
+        
+        clientes = User.objects.all()
+        cliente = FormularioUsuarios()
+
+        # print(request)
+
         if request.method == "POST":
-            formulario = FormularioCliente(data = request.POST)
+            formulario = FormularioUsuarios(data = request.POST)
+            # print(formulario)
             if formulario.is_valid():
+                print("entra")
                 formulario.save()
         return render(request, "Administrador/AdministrarClientes.html",{"form":cliente, "clientes":clientes})
+
+
     @user_passes_test(check_admin)
     def editar_cliente(request,id):
-        cliente = Cliente.objects.get(id=id)
-        form = FormularioCliente(instance=cliente)
+        # cliente = Cliente.objects.get(id=id)
+        # form = FormularioCliente(instance=cliente)
+
+        cliente = User.objects.get(id=id)
+        form = FormularioUsuarios(instance=cliente)
+
         return render(request, "Administrador/EditarCliente.html",{"form":form, "cliente":cliente})
+    
     @user_passes_test(check_admin)
     def actualizar_cliente(request,id):
-        cliente = Cliente.objects.get(pk=id)
-        formulario = FormularioCliente(request.POST,instance=cliente)
+
+        # cliente = Cliente.objects.get(pk=id)
+        # formulario = FormularioCliente(request.POST,instance=cliente)
+
+        cliente = User.objects.get(pk=id)
+        formulario = FormularioUsuarios(request.POST,instance=cliente)
+        print (formulario)
+
         if formulario.is_valid():
             formulario.save()
             return redirect(to="administrarClientes")
+        return redirect(to="administrarClientes")
+        
+
     @user_passes_test(check_admin)
     def eliminar_cliente(request,id):
-        cliente = Cliente.objects.get(pk=id)
+        # cliente = Cliente.objects.get(pk=id)
+        cliente = User.objects.get(pk=id)
         cliente.delete()
         return redirect(to="administrarClientes")
         

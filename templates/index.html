@@ -36,18 +36,34 @@
             <ul class="navbar-nav mr-auto">
                 <a class="nav-link" href="{% url "productos" %}" role="button" aria-haspopup="true" aria-expanded="false"> Productos </a>
 
-                {% if cuenta != None %}
-                    {% if cuenta.username == "josue" %}
-                        <a class="nav-link" href="{%url 'administrador' %}" role="button" aria-haspopup="true" aria-expanded="false"> Administrador </a>
+                <!--
+                    {% if cuenta != None %}
+                        {% if cuenta.username == "josue" %}
+                            <a class="nav-link" href="{%url 'administrador' %}" role="button" aria-haspopup="true" aria-expanded="false"> Administrador </a>
+                        {% endif %}
                     {% endif %}
+                -->
+
+                {% if user.is_superuser %}
+                    <a class="nav-link" href="{%url 'administrador' %}" role="button" aria-haspopup="true" aria-expanded="false"> Administrador </a>
                 {% endif %}
+
             </ul>
 
-            {% if cuenta == None %}
-                <a class="btn btn-outline-success  float-right mx-3" href="{% url "login" %}" id = 'txtIngresar' onclick ="eliminarUsuario()"  >Login</a>
-            {%else %}
-                <a class="btn btn-outline-success  float-right mx-3" id = "txtSalir"  onclick ="eliminarUsuario()" href="{%url 'logout' %}">Salir</a>
+            {% if user.is_authenticated %}
+                <button type="button" class="btn  btn-success" disabled>Bienvenido {{ user.get_username }}</button>
+                <a class="btn btn-outline-danger  float-right mx-3" id = "txtSalir"  onclick ="eliminarUsuario()" href="{%url 'logout' %}">Salir</a>
+            {% else %}
+                <a class="btn btn-outline-success  float-right mx-3" href="{% url "login" %}" id = 'txtIngresar'>Login</a>
             {% endif %}
+
+            <!--
+                {% if cuenta == None %}
+                    <a class="btn btn-outline-success  float-right mx-3" href="{% url "login" %}" id = 'txtIngresar' onclick ="eliminarUsuario()" >Login</a>
+                {%else %}
+                    <a class="btn btn-outline-success  float-right mx-3" id = "txtSalir"  onclick ="eliminarUsuario()" href="{%url 'logout' %}">Salir</a>
+                {% endif %}
+            -->
 
 
             <a class="navbar-brand" href="{% url 'carritoCompra' %}"><i class="fa-solid fa-cart-shopping"></i></a>
@@ -79,6 +95,10 @@
 
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js"
         integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
         crossorigin="anonymous"></script>
 
     <script type="text/javascript">

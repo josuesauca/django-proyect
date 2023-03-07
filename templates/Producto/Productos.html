@@ -2,65 +2,47 @@
 {% load static %}
 {% block content %}
 
-<link rel="stylesheet" href="{% static "css/producto.css" %}">
+<link rel="stylesheet" href="{% static " css/producto.css" %}">
 
-<script type="text/javascript" src="{% static "js/carrito.js" %}"></script>
+<script type="text/javascript" src="{% static " js/carrito.js" %}"></script>
 
 
 <script type="text/javascript">
 
     let arreglo = new Array();
     cargarLocalStorage();
-    document.getElementById("navbar-count").innerHTML =  arreglo.length;
+    document.getElementById("navbar-count").innerHTML = arreglo.length;
 
     console.log(arreglo);
 
-/*
-    var productos = [
-    {% for producto in productos %}
-        {% if not forloop.first %},{% endif %} {
-            id: "{{ producto.id }}",
-            nombre: "{{ producto.nombre }}",
-            precio: "{{ producto.precio }}",
-            marca: "{{ producto.marca }}",
-            cantidad: "{{ producto.cantidad }}",
-            imagenProducto: "{{ producto.imagenProducto.url }}",
-            informacion: "{{ producto.informacion }}",
-        }
-    {% endfor %}
-    ]
-    arreglo = productos;
-    console.log(productos);
-*/
-
-    function guardarLocalStorage () {
+    function guardarLocalStorage() {
         localStorage.setItem('CarritoCompra', JSON.stringify(arreglo));
     }
-    
-    function cargarLocalStorage () {
+
+    function cargarLocalStorage() {
         if (localStorage.getItem('CarritoCompra') !== null) {
             arreglo = JSON.parse(localStorage.getItem('CarritoCompra'));
         }
     }
 
-    function agregarProducto(id,nombre,precio,marca,cantidad,imagenProducto,informacion){
+    function agregarProducto(id, nombre, precio, marca, cantidad, imagenProducto, informacion) {
 
-        if(arreglo != null){
-            console.log(id,nombre,precio,marca,cantidad,imagenProducto,informacion);
+        if (arreglo != null) {
+            console.log(id, nombre, precio, marca, cantidad, imagenProducto, informacion);
 
             let bandera = true;
             let contador = 0;
 
-            while(bandera && contador < arreglo.length ){
-                if(arreglo[contador].id == id){
+            while (bandera && contador < arreglo.length) {
+                if (arreglo[contador].id == id) {
                     bandera = false;
                     break;
                 }
                 contador++;
             }
 
-            if(bandera){
-                let producto  = {
+            if (bandera) {
+                let producto = {
                     id: id,
                     nombre: nombre,
                     precio: precio,
@@ -72,33 +54,47 @@
                     totalPagar: precio * 1,
                 };
                 arreglo.push(producto);
-                document.getElementById("navbar-count").innerHTML =  arreglo.length;
+                document.getElementById("navbar-count").innerHTML = arreglo.length;
                 guardarLocalStorage();
             }
         }
     }
-</script>
 
+    function agregarAjax(idProducto) {
+        $.ajax({
+            type: "POST",
+            url: "{% url 'agregarProducto' %}",
+            data :{ 
+                producto : idProducto,
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+            },
+        });
+    }
+
+</script>
 
 <div class="container">
     <div class="row">
 
         {% for producto in productos %}
-            <div class = "col-lg-4">
-                {% if producto.imagenProducto %}
-                    <img class = "thumbnail" src="{{producto.imagenProducto.url}}" alt="">
-                {% endif %}
-                <div class="box-element product">
-                    <h6><strong>{{producto.nombre}}</strong></h6>
-                    <hr>
-                    <a href="#" class="btn btn-outline-primary" id="btnAgregarProducto" 
-                    onclick = "agregarProducto('{{producto.id}}','{{producto.nombre}}',
+        <div class="col-lg-4">
+            {% if producto.imagenProducto %}
+            <img class="thumbnail" src="{{producto.imagenProducto.url}}" alt="">
+            {% endif %}
+            <div class="box-element product">
+                <h6><strong>{{producto.nombre}}</strong></h6>
+                <hr>
+                    <a href="#" class="btn btn-outline-primary" id="btnAgregarProducto" onclick="agregarProducto('{{producto.id}}','{{producto.nombre}}',
                     '{{producto.precio}}','{{producto.marca}}',
-                    '{{producto.cantidad}}', '{{producto.imagenProducto.url}}','{{producto.informacion}}')">Agregar al Carrito</a>
-                    <a href="{% url 'informacionProducto' producto.id %}" class="btn btn-outline-info">Informacion</a>
-                    <h5 style = "display : inline-block; float: right;  font-size: 1rem;">${{producto.precio}}</h5>
-                </div>
+                    '{{producto.cantidad}}', '{{producto.imagenProducto.url}}','{{producto.informacion}}')">Agregar al
+                    Carrito</a>
+
+                <a href="#" class="btn btn-outline-primary" id="btnAgregar" onclick="agregarAjax('{{producto.id}}')">Agregar al Carrito</a>
+
+                <a href="{% url 'informacionProducto' producto.id %}" class="btn btn-outline-info">Informacion</a>
+                <h5 style="display : inline-block; float: right;  font-size: 1rem;">${{producto.precio}}</h5>
             </div>
+        </div>
         {% endfor %}
     </div>
 </div>

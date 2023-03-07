@@ -22,19 +22,26 @@
         console.log(quitarProducto);
 
         for (let i = 0; i < agregarCantidadProducto.length; i++) {
-            agregarCantidadProducto[i].addEventListener("click",() => {
+            agregarCantidadProducto[i].addEventListener("click",(e) => {
+                e.preventDefault();
+                console.log(e);
+                
                 agregarProductoCantidad(arreglo[i].cantidad,arreglo[i].precio,i);
             });
         }
         
         for (let j = 0; j < quitarCantidadProducto.length; j++) {
-            quitarCantidadProducto[j].addEventListener("click",() => {
+            quitarCantidadProducto[j].addEventListener("click",(e) => {
+                e.preventDefault();
                 quitarProductoCantidad(arreglo[j].precio,j);
             });
         }
 
         for (let k = 0; k < quitarProducto.length; k++) {
-            quitarProducto[k].addEventListener("click",() => {
+            quitarProducto[k].addEventListener("click",(e) => {
+                e.preventDefault();
+                console.log(e);
+                
                 quitarProductoPosicion(k);
             });
         }
@@ -102,7 +109,6 @@
             cargarTabla();
         }
 
-
         function guardarLocalStorage () {
             localStorage.setItem('CarritoCompra', JSON.stringify(arreglo));
         }
@@ -141,6 +147,8 @@
             tabla +='</tr>';
 
             valorTotal = valorTotal + arreglo[i].totalPagar;
+            console.log(arreglo[i].imagenProducto);
+            
             
         }
 
@@ -159,11 +167,18 @@
         }
         document.getElementById("totalProductosPagar").innerHTML = "$"+valorTotal;
     }
+
+    function actualizarCarrito(longitud) {
+        console.log("actualizarCarrito");
+        document.getElementById("navbar-count").innerHTML =  longitud;
+    }
+
 </script>
 
 
 
 <div class="container">
+
 
     <br>
     <br>
@@ -173,14 +188,25 @@
                 <br>
                 <a class="btn btn-warning btn-lg" href="{% url 'productos' %}">Seguir Comprando</a>
                 <br>
+                {% if cantidad_items %}
+                    <img src="" onerror="actualizarCarrito('{{cantidad_items}}')">
+                {% endif %}
+        
                 
                 <table class="table">
                     <tr>
                         <th><h5>Items : <strong id = "cantidadProductos">3</strong></h5></th>
                         <th><h5>Total : <strong id = "totalProductosPagar">$43</strong></h5></th>
-                        <th>
-                            <a class="btn btn-success" href="{% url 'compra' %}">Pagar la Compra</a>
-                        </th>
+                        {% if user.is_authenticated %}
+                            <th>
+                                <a class="btn btn-success" href="{% url 'compra' %}">Pagar la Compra</a>
+                                <a class="btn btn-info" href="{% url 'pagarCompra' %}">Pagar la Compra 1</a>
+                            </th>
+                        {% else %}
+                            <th>
+                                <a class="btn btn-success" href="{% url 'login' %}">Iniciar Sesion</a>
+                            </th>
+                        {% endif %}
                     </tr>
                 </table>
             </div>
@@ -188,10 +214,30 @@
             <br>
             <br>
             <br>
+            {% if lista_imagenes %}
+                {% for item in lista_imagenes %}
+                <h1> hola {{item}}</h1>
+
+                <table class = "table table-striped">
+                    <tr>
+                        <td><img src='/media/{{item.imagenProducto}}'/></td>
+                        <td>{{item.nombre}}</td>
+                        <td>{{item.precio}}</td>";
+                        <td>"+"<p id ='cantidadProducto"+i+"'>"+arreglo[i].cantidadAdquirida+"</p>"+"<a href='#'><i class='fa-solid fa-circle-plus'></i></a><a href='#'><i class='fa-solid fa-circle-minus'></i></a></td>";
+                        <td>{{item.marca}}</td>"
+                        <td>"+"<p id = 'totalPagar"+i+"'> $"+(arreglo[i].totalPagar)+"</p>"+"</td>";
+                        <td><a  href='#' class='btn btn-danger'> Quitar</a></td>";
+                    </tr>
+                </table>
+                {% endfor %}
+            {% endif %}
+
+
 
             <table class = "table table-striped" id = "tablaProductos">
 
             </table>
+
         </div>
     </div>
 </div>

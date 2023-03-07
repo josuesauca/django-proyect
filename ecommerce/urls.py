@@ -70,8 +70,16 @@ urlpatterns = [
     path('eliminarProveedor/<int:id>', vista.GestionarProveedor.eliminar_proveedor, name = "eliminarProveedor"),
 
 
-     path('productos/', vista.VistaProductos.listarProductos,name='productos'),
-     path('compra/', vista.VistaProductos.cancelarProductos,name='compra'),
+    path('productos/', vista.VistaProductos.listarProductos,name='productos'),
+    path('compra/', vista.VistaProductos.cancelarProductos,name='compra'),
+
+    ################################################################
+    path('agregarProducto/',vista.AgregarProductoAjax,name='agregarProducto'),
+    path('eliminarProductoAjax/',vista.EliminarProductoAjax,name='eliminarProductoAjax'),
+
+
+
+    path('pagarCompra/',vista.PagarCompra,name='pagarCompra'),
      
     #Fin Rutas Administradors
 

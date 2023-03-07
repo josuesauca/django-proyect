@@ -6,7 +6,7 @@
     <div class="alert alert-danger" role="alert">Ha sucedido un error</div>
 {% endif %}
 
-<h1>Registrar Clientes</h1>
+<h1>Registrar Cliente</h1>
 
 <form action="{% url 'administrarClientes' %}" enctype="multipart/form-data" method="POST">
     {% csrf_token %}
@@ -19,7 +19,7 @@
 <div class="container">
     <p></p>
     <p></p>
-    <h1>Productos Registrados</h1>
+    <h1>Clientes Registrados</h1>
     <p></p>
     <p></p>
 
@@ -27,30 +27,26 @@
         <thead>
             <tr>
                 <th scope="col">ID</th>
-                <th scope="col">Nombres</th>
-                <th scope="col">Apellidos</th>
-                <th scope="col">NombreUsuario</th>
+                <th scope="col">Usuario</th>
+                <th scope="col">Nombre</th>
+                <th scope="col">Apellido</th>
                 <th scope="col">Email</th>
-                <th scope="col">Domicilio</th>
-                <th scope="col">Telefono</th>
             </tr>
         </thead>
         <tbody>
-            {% for cliente in clientes %}
-            <tr>
-                <th scope="row">{{cliente.id}}</th>
-                <td>{{cliente.nombres}}</td>
-                <td>{{cliente.apellidos}}</td>
-                <td>{{cliente.nombreUsuario}}</td>
-                <td>{{cliente.email}}</td>
-                <td>{{cliente.domicilio}}</td>
-                <td>{{cliente.telefono}}</td>
-
-                <td><a class="btn btn-warning" href="{%url 'editarCliente' cliente.id%}" >Editar </a></td>
-                <td><a class="btn btn-danger" href= "{%url 'eliminarCliente' cliente.id%}" > Eliminar</a></td>
-            </tr>
-
-            {% endfor %}
+            {% if user.is_superuser %}
+                {% for cliente in clientes %}
+                <tr>
+                    <th scope="row">{{cliente.id}}</th>
+                    <td>{{cliente.username}}</td>
+                    <td>{{cliente.first_name}}</td>
+                    <td>{{cliente.last_name}}</td>
+                    <td>{{cliente.email}}</td>
+                    <td><a class="btn btn-warning" href="{%url 'editarCliente' cliente.id%}" >Editar </a></td>
+                    <td><a class="btn btn-danger" href= "{%url 'eliminarCliente' cliente.id%}" > Eliminar</a></td>
+                </tr>
+                {% endfor %}
+            {% endif %}
         </tbody>
     </table>
 </div>
