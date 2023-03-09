@@ -37,17 +37,21 @@ class Producto(models.Model):
     def __str__(self):
         return f"Producto : {self.id} , {self.nombre} , {self.precio} , {self.marca} , {self.cantidad} "
 
-
-class OrdenItem(models.Model):
-    id = models.AutoField(primary_key=True)
-    producto = models.ForeignKey(Producto,null=True,on_delete=models.CASCADE)
-    cantidad = models.IntegerField(null=True)
 class CarritoCompras(models.Model):
     id = models.AutoField(primary_key=True)
     idUsuario = models.OneToOneField(User,on_delete=models.CASCADE,null=True)
-    productos = models.ManyToManyField(Producto,null=True)
-    total_pagar = models.DecimalField(max_digits=6, decimal_places=2, null=True)
+    #productos = models.ManyToManyField(Producto,null=True)
+    total_carrito = models.DecimalField(max_digits=6, decimal_places=2, null=True)
+    #orden_item = models.ManyToManyField(OrdenItem,null=True)
+    #orden_item = None
+    #ordenItem = models.ManyToManyField(Producto,through="OrdenItem",null=True)
 
+class OrdenItem(models.Model):
+    id = models.AutoField(primary_key=True)
+    #idCarritoCompra = models.ForeignKey(CarritoCompras,null=True,on_delete=models.CASCADE)
+    idProducto = models.ForeignKey(Producto,null=True,on_delete=models.CASCADE)
+    cantidad = models.IntegerField(null=True,default=1)
+    total_item = models.DecimalField(default=0,max_digits=6, decimal_places=2, null=True)
 
 
 class OrdenCompra(models.Model):

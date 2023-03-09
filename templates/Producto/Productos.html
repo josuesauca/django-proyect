@@ -84,12 +84,12 @@
             <div class="box-element product">
                 <h6><strong>{{producto.nombre}}</strong></h6>
                 <hr>
-                    <a href="#" class="btn btn-outline-primary" id="btnAgregarProducto" onclick="agregarProducto('{{producto.id}}','{{producto.nombre}}',
+                   <!-- <a href="#" class="btn btn-outline-primary" id="btnAgregarProducto" onclick="agregarProducto('{{producto.id}}','{{producto.nombre}}',
                     '{{producto.precio}}','{{producto.marca}}',
                     '{{producto.cantidad}}', '{{producto.imagenProducto.url}}','{{producto.informacion}}')">Agregar al
-                    Carrito</a>
+                    Carrito</a> -->
 
-                <a href="#" class="btn btn-outline-primary" id="btnAgregar" onclick="agregarAjax('{{producto.id}}')">Agregar al Carrito</a>
+                <a href="#" class="btn btn-outline-primary" id="btnAgregar" onclick="agregarAjax('{{producto.id}}')">Agregar al Carrito Ajax</a>
 
                 <a href="{% url 'informacionProducto' producto.id %}" class="btn btn-outline-info">Informacion</a>
                 <h5 style="display : inline-block; float: right;  font-size: 1rem;">${{producto.precio}}</h5>
